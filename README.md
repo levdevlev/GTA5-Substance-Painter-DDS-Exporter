@@ -12,7 +12,7 @@ A Substance Painter DDS export plugin to automate the PNG to DDS conversion.
 Mainly made for making Starfield modding easier via DDS creation, but could be tweaked in the future to be more modular and dependant on export presets.
 No more spending 20 minutes manually converting those 20 different maps to DDS via tedious steps in PS/Intel/Paint.net etc
 
-# Installation:
+# Installation [GTA 5 Version]: 
 Extract the starfield-dds-exporter.py into your Substance Painter Plugin folder:
 <pre>
 C:\Users\username\Documents\Adobe\Adobe Substance 3D Painter\python\plugins
@@ -20,8 +20,8 @@ C:\Users\username\Documents\Adobe\Adobe Substance 3D Painter\python\plugins
 
 (Can also be found using the Python > Plugins Folder button in the top row)
 
-## Export preset:
-Move the Starfield.spexp from the optional files to this folder: 
+## Export preset [Optional]: 
+Move the GTA 5.spexp file to this folder: 
 <pre>
 C:\Users\username\Documents\Adobe\Adobe Substance 3D Painter\assets\export-presets
 </pre>
