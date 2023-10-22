@@ -86,12 +86,12 @@ def convert_png_to_dds(texconvPath, sourcePNG, overwrite):
 
         outputFile = sourceFile + ".dds"
 
-        if suffix in ["metal", "rough", "transmissive", "emissive", "ao", "opacity", "height", "mask"]:
-            format_option = "BC4_UNORM"
+        if suffix in ["metal", "rough", "transmissive", "emissive", "ao", "opacity", "height", "mask", "specular"]:
+            format_option = "BC1_UNORM"
         elif suffix == "normal":
-            format_option = "BC5_SNORM"
-        elif suffix == "color":
-            format_option = "BC7_UNORM"
+            format_option = "BC1_UNORM"
+        elif suffix in ["color", "diffuse", "alpha"]:
+            format_option = "BC3_UNORM"
         # If for some reason it's using some other suffix that's not supported
         else:
             format_option = "BC1_UNORM"
