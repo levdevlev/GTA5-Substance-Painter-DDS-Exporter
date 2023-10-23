@@ -64,7 +64,7 @@ def choose_texconv_folder():
     substance_painter.ui.get_main_window(),"Choose Texconv directory")
     return path +"/texconv.exe"
 
-def convert_png_to_dds(texconvPath, sourcePNG, overwrite):
+def convert_png_to_dds(texconvPath, sourcePNG, overwrite, format_choice):
     # Replace backslashes with forward slashes in the provided paths
     texconvPath = texconvPath.replace('\\', '/')
     sourceFolder = os.path.dirname(sourcePNG)
@@ -86,19 +86,13 @@ def convert_png_to_dds(texconvPath, sourcePNG, overwrite):
 
         outputFile = sourceFile + ".dds"
 
-        if suffix in ["metal", "rough", "transmissive", "emissive", "ao", "opacity", "height", "mask", "specular"]:
+        if format_choice == "DXT1":
             format_option = "BC1_UNORM"
-        elif suffix == "normal":
-            format_option = "BC1_UNORM"
-        elif suffix in ["color", "diffuse", "alpha", "opacity"]:
+        elif format_choice == "DXT5":
             format_option = "BC3_UNORM"
-        elif suffix in "dxt1":
-            format_option = "BC1_UNORM"
-        # If for some reason it's using some other suffix that's not supported
         else:
-            format_option = "BC1_UNORM"
+            format_option = "BC1_UNORM"  # default in case of an unexpected value
 
-        format_option = format_option.rstrip('"')
         if overwrite:
             overwrite_option = "-y"
         else:
@@ -126,6 +120,9 @@ class StarfieldDDSPlugin:
         self.export = True
         # Overwrites existing DDS files if checked
         self.overwrite = True
+
+        self.export_png = False  # Default is to export PNGs
+
         # Plugin Version
         self.version = "0.1.1"
 
@@ -139,18 +136,63 @@ class StarfieldDDSPlugin:
 
         checkbox = QtWidgets.QCheckBox("Export DDS files")
         checkbox.setChecked(True)
+        checkbox.setToolTip("Enable this to automatically export textures in DDS format after regular export.")
+
+        checkbox_png_export = QtWidgets.QCheckBox("Export PNG files")
+        checkbox_png_export.setChecked(False)
+        checkbox_png_export.setToolTip("Enable this to export PNG textures (regular export).")
+
         checkbox_overwrite = QtWidgets.QCheckBox("Overwrite DDS files")
         checkbox_overwrite.setChecked(True)
-        button_texconv = QtWidgets.QPushButton("Choose Texconv location")
+        checkbox_overwrite.setToolTip("Enable this to overwrite existing DDS files with the new exports.")
+
+        button_texconv = QtWidgets.QPushButton("Texconv Folder")
+        button_texconv.setToolTip("Select the directory where 'texconv.exe' resides.")
+
         button_clear = QtWidgets.QPushButton("Clear Log")
+        button_clear.setToolTip("Clear the current log messages.")
+
+        button_help = QtWidgets.QPushButton("Help")
+
 
         version_label = QtWidgets.QLabel("Version: {}".format(self.version))
 
         # Adds buttons to sub-layout
         sub_layout.addWidget(checkbox)
         sub_layout.addWidget(checkbox_overwrite)
+        sub_layout.addWidget(checkbox_png_export)
         sub_layout.addWidget(button_texconv)
         sub_layout.addWidget(button_clear)
+        sub_layout.addWidget(button_help)
+
+
+        # LEV TEST
+
+        # Define map types
+        self.map_types = ["diffuse", "normal", "specular", "alpha"]
+        
+        # Dictionary to store combo boxes for each map type
+        self.map_format_comboboxes = {}
+        
+        # Create combo boxes for each map type
+        for map_type in self.map_types:
+            combobox = QtWidgets.QComboBox()
+            
+            # If the map_type is "alpha", only add "DXT5" and "None"
+            if map_type == "alpha":
+                combobox.addItems(["None", "DXT5"])
+            else:
+                combobox.addItems(["DXT5", "DXT1", "None"])
+
+            self.map_format_comboboxes[map_type] = combobox
+                
+            # Add a label and combo box to the layout
+            map_label = QtWidgets.QLabel(f"{map_type.capitalize()} Format:")
+            format_layout = QtWidgets.QHBoxLayout()
+            format_layout.addWidget(map_label)
+            format_layout.addWidget(combobox)
+            layout.addLayout(format_layout)
+        # LEV END TEST
 
         # Adds all widgets to main layout
         layout.addLayout(sub_layout)
@@ -165,8 +207,11 @@ class StarfieldDDSPlugin:
         # Connects buttons to click events
         checkbox.stateChanged.connect(self.checkbox_export_change)
         checkbox_overwrite.stateChanged.connect(self.checkbox_overwrite_change)
+        checkbox_png_export.stateChanged.connect(self.checkbox_png_export_change)
         button_texconv.clicked.connect(self.button_texconv_clicked)
         button_clear.clicked.connect(self.button_clear_clicked)
+        button_help.clicked.connect(self.show_help_dialog)
+
 
         # Adds Qt as dockable widget to Substance Painter
         substance_painter.ui.add_dock_widget(self.window)
@@ -186,6 +231,12 @@ class StarfieldDDSPlugin:
     def button_clear_clicked(self):
         self.log.clear()
 
+    def checkbox_png_export_change(self,state):
+        if state == Qt.Checked:
+            self.export_png = True
+        else:
+            self.export_png = False
+
     def checkbox_export_change(self,state):
         if state == Qt.Checked:
             self.export = True
@@ -198,25 +249,76 @@ class StarfieldDDSPlugin:
         else:
             self.overwrite = False
 
+    def show_help_dialog(self):
+        message = (
+            "Starfield DDS Auto Converter\n\n"
+            "1. Set the path to 'texconv.exe' using 'Choose Texconv location'.\n"
+            "2. Choose your desired DDS formats using the dropdown menus.\n"
+            "3. When exporting from Substance Painter, DDS files will be automatically generated."
+        )
+        QtWidgets.QMessageBox.information(self.window, "Help", message)
+
+    def texconv_exists(self):
+        return os.path.exists(self.TexConvPath)
+
     def __del__(self):
         # Remove all added UI elements.
         substance_painter.ui.delete_ui_element(self.log)
         substance_painter.ui.delete_ui_element(self.window)
 
     def on_export_finished(self, res):
-        if(self.export):
-            self.log.append(res.message)
-            self.log.append("Exported files:")
-            for file_list in res.textures.values():
-                for file_path in file_list:
-                    self.log.append("  {}".format(file_path))
+        if not self.texconv_exists():
+            QtWidgets.QMessageBox.critical(self.window, "DDS Exporter", "texconv.exe not found in the specified directory. Skipping DDS export.")
+            return
+
+        expected_suffixes = ["diffuse", "normal", "specular", "alpha"]
+        exported_suffixes = [file_path.split('_')[-1].split('.')[0] for file_list in res.textures.values() for file_path in file_list]
+
+        for suffix in expected_suffixes:
+            if suffix not in exported_suffixes:
+                QtWidgets.QMessageBox.warning(self.window, "Export Warning", f"The '{suffix}' suffix is missing in the exported textures. Please ensure it's present in your export template. e.g 't_$textureSet_diffuse'")
+
+        # Logging the export results
+        self.log.append(res.message)
+        self.log.append("Exported files:")
+
+        for file_list in res.textures.values():
+            for file_path in file_list:
+                # Extract the map type from the filename
+                map_type = file_path.split('_')[-1].split('.')[0]
+                
+                # Check if the map type is recognized
+                if map_type not in self.map_format_comboboxes:
+                    self.log.append(f"Unrecognized map type: {map_type}. Skipping...")
+                    continue
+
+                # Fetch the chosen format for this map type
+                chosen_format = self.map_format_comboboxes[map_type].currentText()
+
+                # If chosen format is "None", skip the conversion
+                if chosen_format == "None":
+                    self.log.append(f"Skipping conversion for {file_path} as per user choice.")
+                    continue
+
+                # Log the conversion attempt
+                self.log.append(f"Converting {file_path} using format {chosen_format}...")
+
+                # Convert the file using the chosen format
+                convert_png_to_dds(self.TexConvPath, file_path, self.overwrite, chosen_format)
                     
-            self.log.append("Converting to DDS files:")
-            for file_list in res.textures.values():
-                for file_path in file_list:
-                    convert_png_to_dds(self.TexConvPath,file_path,self.overwrite)
-                    file_path = file_path[:-3]+"DDS"
-                    self.log.append("  {}".format(file_path))
+                # Log the converted file
+                dds_file_path = file_path[:-3] + "dds" # Changed "DDS" to "dds" for correct extension
+                if os.path.exists(dds_file_path):
+                    self.log.append(f"Successfully converted to {dds_file_path}")
+                else:
+                    self.log.append(f"Failed to convert {file_path}")
+                                # Delete the PNG after conversion if the option is unchecked
+                if not self.export_png:
+                    try:
+                        os.remove(file_path)
+                        self.log.append(f"Removed PNG: {file_path}")
+                    except Exception as e:
+                        self.log.append(f"Error removing PNG: {file_path}. Reason: {str(e)}")
 
     def on_export_error(self, err):
         self.log.append("Export failed.")
