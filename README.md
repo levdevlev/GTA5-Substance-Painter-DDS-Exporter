@@ -20,6 +20,12 @@ C:\Users\username\Documents\Adobe\Adobe Substance 3D Painter\python\plugins
 
 (Can also be found using the Python > Plugins Folder button in the top row)
 
+## Update
+
+- Added opacity as an suffix operator,
+- Can use suffix "dxt1" in preset if you want DXT1 version of texture
+![example](https://i.imgur.com/NhBj45q.png)
+
 ## Export preset [Optional]: 
 Move the GTA 5.spexp file to this folder: 
 <pre>

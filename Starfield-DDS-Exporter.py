@@ -90,8 +90,10 @@ def convert_png_to_dds(texconvPath, sourcePNG, overwrite):
             format_option = "BC1_UNORM"
         elif suffix == "normal":
             format_option = "BC1_UNORM"
-        elif suffix in ["color", "diffuse", "alpha"]:
+        elif suffix in ["color", "diffuse", "alpha", "opacity"]:
             format_option = "BC3_UNORM"
+        elif suffix in "dxt1":
+            format_option = "BC1_UNORM"
         # If for some reason it's using some other suffix that's not supported
         else:
             format_option = "BC1_UNORM"
