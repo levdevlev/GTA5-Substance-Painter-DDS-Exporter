@@ -6,7 +6,7 @@
 	<img src="https://staticdelivery.nexusmods.com/mods/4187/images/4891/4891-1696725885-1834762162.png" width=50% height=50%>
 </p>
 
-##Original author
+## Original author
 https://github.com/emomilol1213/Substance-Painter-DDS-Exporter
 
 # Installation: 
@@ -26,6 +26,7 @@ C:\Users\username\Documents\Adobe\Adobe Substance 3D Painter\python\plugins
 
 - Choose format type for each map type
 <img src="https://imgur.com/1cLr4iS.png" width=75% height=50%>
+
  - **DXT5** - Higher quality texture with transparency (alpha) but size is a bit bigger (just use this for most things really)
  
  - **DXT1** - No transparency format, also lowers the quality and can cause artifacts, smaller size than DXT5 though
