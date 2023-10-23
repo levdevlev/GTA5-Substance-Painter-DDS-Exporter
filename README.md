@@ -1,4 +1,4 @@
-<p align="center">~~Starfield~~</p>
+<p align="center">Starfield-ish</p>
 
 <h1 align="center">GTA Substance Painter DDS Exporter</h1>
 
