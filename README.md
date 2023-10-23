@@ -1,6 +1,6 @@
-<h1 align="center">
-~~Starfield~~ GTA Substance Painter DDS Exporter
-</h1>
+<p align="center">~~Starfield~~</p>
+
+<h1 align="center">GTA Substance Painter DDS Exporter</h1>
 
 <p align="center">
 	<img src="https://staticdelivery.nexusmods.com/mods/4187/images/4891/4891-1696725885-1834762162.png" width=50% height=50%>
